@@ -1,27 +1,31 @@
 (ns authorizer.core
   (:require [java-time :as time]))
 
+#_
 (def violation-codes {:account-already-initialized "account-already-initialized"
                       :insufficient-limit "insufficient-limit"
                       :card-not-active "card-not-active"})
 
-(defn account-from [data]
-  data)
-
 (defn response [account violations]
   {:account account :violations violations})
 
-(def account (atom nil))
+(defn create-account-info [account transactions]
+  {:account account :transactions transactions})
 
-(defn pay [account amount]
+(def account-info (atom (create-account-info nil [])))
+
+(defn decrease-available-limit [account amount]
   (update account :available-limit - amount))
 
-(defn pay! [amount]
-  ;(swap! account update :available-limit - amount)
-  (reset! account (pay @account amount)))
+(defn pay [account-info tx]
+  (create-account-info (decrease-available-limit (:account account-info) (:amount tx))
+                       (conj (:transactions account-info) tx)))
+
+(defn pay! [tx]
+  (reset! account-info (pay @account-info tx)))
 
 (defn create-account! [data]
-  (reset! account (account-from data)))
+  (:account (swap! account-info assoc :account data)))
 
 (defn create-account [account data]
   (if account
@@ -35,6 +39,7 @@
 (defn has-active-card? [account]
   (:active-card account))
 
+; Still not used
 (defn time-between [tx-1 tx-2]
   (let [instant-1 (time/instant (:time tx-1))
         instant-2 (time/instant (:time tx-2))]
@@ -45,15 +50,15 @@
           (not (has-enough-money? account (:amount data))) (conj "insufficient-limit")
           (not (has-active-card? account)) (conj "card-not-active")))
 
-(defn process-transaction [data]
-  (let [violations (transaction-violations @account data)]
+(defn process-transaction [tx]
+  (let [violations (transaction-violations (:account @account-info) tx)]
     (when (empty? violations)
-      (pay! (:amount data)))
-    (response @account violations)))
+      (pay! tx))
+    (response (:account @account-info) violations)))
 
 (defn process [op]
   (cond
-    (:account op) (create-account @account (:account op))
+    (:account op) (create-account (:account @account-info) (:account op))
     (:transaction op) (process-transaction (:transaction op))))
 
 (defn authorize [ops]
@@ -62,10 +67,10 @@
 (comment
 
   ; Start over
-  (reset! account nil)
+  (reset! account-info (create-account-info nil []))
 
   ; Check account
-  @account
+  @account-info
 
   ; Create an account
   (authorize [{:account {:active-card true :available-limit 100}}])
