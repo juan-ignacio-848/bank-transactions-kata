@@ -1,9 +1,14 @@
 (ns authorizer.core
-  (:require [java-time :as time]))
+  (:require [time.interval :as time])
+  (:import (java.time.temporal ChronoUnit)))
+
+;; TODO: Validations should go in another namespace?
 
 (def violation-codes #{:account-already-initialized
-                      :insufficient-limit
-                      :card-not-active})
+                       :insufficient-limit
+                       :card-not-active
+                       :high-frequency-small-interval
+                       :doubled-transaction})
 
 (defn response [account violations]
   {:account account :violations violations})
@@ -35,19 +40,24 @@
 (defn has-active-card? [account]
   (:active-card account))
 
-; Still not used
-(defn time-between [tx-1 tx-2]
-  (let [instant-1 (time/instant (:time tx-1))
-        instant-2 (time/instant (:time tx-2))]
-    (Math/abs (time/time-between instant-1 instant-2 :seconds))))
+(defn transactions-within-interval [txs tx]
+  (filter (fn [{:keys [time]}]
+            (time/within-interval (time/instant time)
+                                  (time/interval (time/instant (:time tx))
+                                                 1 ChronoUnit/MINUTES)))
+          txs))
 
-(defn transaction-violations [account data]
+(defn high-frequency-small-interval? [txs tx]
+  (> (count (transactions-within-interval txs tx)) 3))
+
+(defn transaction-violations [account-info tx]
   (cond-> []
-          (not (has-enough-money? account (:amount data))) (conj "insufficient-limit")
-          (not (has-active-card? account)) (conj "card-not-active")))
+          (not (has-enough-money? (:account account-info) (:amount tx))) (conj "insufficient-limit")
+          (not (has-active-card? (:account account-info))) (conj "card-not-active")
+          (high-frequency-small-interval? (:transactions account-info) tx) (conj "high-frequency-small-interval")))
 
 (defn process-transaction [tx]
-  (let [violations (transaction-violations (:account @account-info) tx)]
+  (let [violations (transaction-violations @account-info tx)]
     (when (empty? violations)
       (pay! tx))
     (response (:account @account-info) violations)))
@@ -78,6 +88,10 @@
 
   ; Transaction
   (authorize [{:transaction {:merchant "Burger King" :amount 20 :time "2019-02-13T10:00:00.000Z"}}])
+  (authorize [{:transaction {:merchant "Burger King" :amount 20 :time "2019-02-13T10:00:30.000Z"}}])
+  (authorize [{:transaction {:merchant "Burger King" :amount 20 :time "2019-02-13T10:01:30.000Z"}}])
+  (authorize [{:transaction {:merchant "Burger King" :amount 1 :time "2019-02-13T10:01:00.000Z"}}])
+  (authorize [{:transaction {:merchant "Burger King" :amount 1 :time "2019-02-13T10:01:00.000Z"}}])
 
   ; Transactions until insufficient limit
   (authorize [
@@ -88,6 +102,22 @@
               {:transaction {:merchant "Burger King" :amount 20 :time "2019-06-13T10:00:00.000Z"}}
               {:transaction {:merchant "Burger King" :amount 20 :time "2019-09-13T10:00:00.000Z"}}
               ])
+
+  ; Transactions until insufficient limit
+  (authorize [
+              {:transaction {:merchant "Burger King" :amount 20 :time "2019-02-13T10:02:00.000Z"}}
+              {:transaction {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"}}
+              {:transaction {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"}}
+              {:transaction {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"}}
+              ])
+
+
+  (high-frequency-small-interval? [
+                                   {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"}
+                                   {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"}
+                                   {:merchant "Burger King" :amount 20 :time "2019-03-13T10:04:00.000Z"}
+
+                                   ] {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"})
 
   ; Card is not active
   (authorize [{:account {:active-card false :available-limit 100}}
