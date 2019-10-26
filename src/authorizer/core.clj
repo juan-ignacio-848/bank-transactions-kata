@@ -1,4 +1,5 @@
-(ns authorizer.core)
+(ns authorizer.core
+  (:require [java-time :as time]))
 
 (def violation-codes {:account-already-initialized "account-already-initialized"
                       :insufficient-limit "insufficient-limit"
@@ -12,8 +13,12 @@
 
 (def account (atom nil))
 
+(defn pay [account amount]
+  (update account :available-limit - amount))
+
 (defn pay! [amount]
-  (swap! account update :available-limit - amount))
+  ;(swap! account update :available-limit - amount)
+  (reset! account (pay @account amount)))
 
 (defn create-account! [data]
   (reset! account (account-from data)))
@@ -29,6 +34,11 @@
 
 (defn has-active-card? [account]
   (:active-card account))
+
+(defn time-between [tx-1 tx-2]
+  (let [instant-1 (time/instant (:time tx-1))
+        instant-2 (time/instant (:time tx-2))]
+    (Math/abs (time/time-between instant-1 instant-2 :seconds))))
 
 (defn transaction-violations [account data]
   (cond-> []
@@ -80,5 +90,4 @@
 
   ; Card is not active
   (authorize [{:account {:active-card false :available-limit 100}}
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-05-13T10:00:00.000Z"}}])
-  )
+              {:transaction {:merchant "Burger King" :amount 20 :time "2019-05-13T10:00:00.000Z"}}]))
