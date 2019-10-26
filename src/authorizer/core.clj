@@ -1,10 +1,9 @@
 (ns authorizer.core
   (:require [java-time :as time]))
 
-#_
-(def violation-codes {:account-already-initialized "account-already-initialized"
-                      :insufficient-limit "insufficient-limit"
-                      :card-not-active "card-not-active"})
+(def violation-codes #{:account-already-initialized
+                      :insufficient-limit
+                      :card-not-active})
 
 (defn response [account violations]
   {:account account :violations violations})
@@ -24,13 +23,10 @@
 (defn pay! [tx]
   (reset! account-info (pay @account-info tx)))
 
-(defn create-account! [data]
-  (:account (swap! account-info assoc :account data)))
-
-(defn create-account [account data]
+(defn create-account! [account data]
   (if account
     (response account ["account-already-initialized"])
-    (response (create-account! data) [])))
+    (response (:account (swap! account-info assoc :account data)) [])))
 
 (defn has-enough-money? [account amount]
   (>= (:available-limit account)
