@@ -1,6 +1,5 @@
 {:deps    {org.clojure/clojure {:mvn/version "1.10.1"}
-           clojure.java-time   {:mvn/version "0.3.2"}
-           tick {:mvn/version "0.4.20-alpha"}}
+           clojure.java-time   {:mvn/version "0.3.2"}}
  :aliases {:dev  {:extra-paths ["dev"]}
            :comp {:extra-deps {compliment {:mvn/version "RELEASE"}}}
            ;; - see https://github.com/cognitect-labs/REBL-distro
