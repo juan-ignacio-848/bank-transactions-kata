@@ -54,7 +54,7 @@
 
 (defn process [op]
   (cond
-    (:account op) (create-account (:account @account-info) (:account op))
+    (:account op) (create-account! (:account @account-info) (:account op))
     (:transaction op) (process-transaction (:transaction op))))
 
 (defn authorize [ops]
