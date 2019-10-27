@@ -82,10 +82,7 @@
       (pay! tx))
     (response (:account @account-info) violations)))
 
-(defn process [op]
+(defn authorize [op]
   (cond
     (:account op) (create-account! (:account @account-info) (:account op))
     (:transaction op) (process-transaction (:transaction op))))
-
-(defn authorize [ops]
-  (map process ops))
