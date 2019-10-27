@@ -3,7 +3,9 @@
   (:import (java.time.temporal ChronoUnit)))
 
 ;; TODO: Validations should go in another namespace?
+;; TODO: Tests - Unit tests, generative tests.
 
+;; TODO: Violation codes are hard-coded, advantages of using this set?
 (def violation-codes #{:account-already-initialized
                        :insufficient-limit
                        :card-not-active
@@ -50,11 +52,29 @@
 (defn high-frequency-small-interval? [txs tx]
   (> (count (transactions-within-interval txs tx)) 3))
 
+(defn similar-transactions? [tx-1 tx-2]
+  (and (= (:amount tx-1) (:amount tx-2))
+       (= (:merchant tx-1) (:merchant tx-2))))
+
+(defn transactions-within-interval? [tx-1 tx-2]
+  (time/within-interval (time/instant (:time tx-1))
+                        (time/interval (time/instant (:time tx-2))
+                                       1 ChronoUnit/MINUTES)))
+
+(defn similar-transactions [txs tx]
+  (let [similar-within-interval (comp (filter #(similar-transactions? % tx))
+                                   (filter #(transactions-within-interval? % tx)))]
+    (sequence similar-within-interval txs)))
+
+(defn doubled-transactions [txs tx]
+  (>= (count (similar-transactions txs tx)) 2))
+
 (defn transaction-violations [account-info tx]
   (cond-> []
           (not (has-enough-money? (:account account-info) (:amount tx))) (conj "insufficient-limit")
           (not (has-active-card? (:account account-info))) (conj "card-not-active")
-          (high-frequency-small-interval? (:transactions account-info) tx) (conj "high-frequency-small-interval")))
+          (high-frequency-small-interval? (:transactions account-info) tx) (conj "high-frequency-small-interval")
+          (doubled-transactions (:transactions account-info) tx) (conj "doubled-transactions")))
 
 (defn process-transaction [tx]
   (let [violations (transaction-violations @account-info tx)]
@@ -69,56 +89,3 @@
 
 (defn authorize [ops]
   (map process ops))
-
-(comment
-
-  ; Start over
-  (reset! account-info (create-account-info nil []))
-
-  ; Check account
-  @account-info
-
-  ; Create an account
-  (authorize [{:account {:active-card true :available-limit 100}}])
-  (authorize [{:account {:active-card false :available-limit 100}}])
-
-  ; Account is already initialized
-  (authorize [{:account {:active-card true :available-limit 100}}
-              {:account {:active-card true :available-limit 200}}])
-
-  ; Transaction
-  (authorize [{:transaction {:merchant "Burger King" :amount 20 :time "2019-02-13T10:00:00.000Z"}}])
-  (authorize [{:transaction {:merchant "Burger King" :amount 20 :time "2019-02-13T10:00:30.000Z"}}])
-  (authorize [{:transaction {:merchant "Burger King" :amount 20 :time "2019-02-13T10:01:30.000Z"}}])
-  (authorize [{:transaction {:merchant "Burger King" :amount 1 :time "2019-02-13T10:01:00.000Z"}}])
-  (authorize [{:transaction {:merchant "Burger King" :amount 1 :time "2019-02-13T10:01:00.000Z"}}])
-
-  ; Transactions until insufficient limit
-  (authorize [
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-02-13T10:00:00.000Z"}}
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-03-13T10:00:00.000Z"}}
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-04-13T10:00:00.000Z"}}
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-05-13T10:00:00.000Z"}}
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-06-13T10:00:00.000Z"}}
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-09-13T10:00:00.000Z"}}
-              ])
-
-  ; Transactions until insufficient limit
-  (authorize [
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-02-13T10:02:00.000Z"}}
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"}}
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"}}
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"}}
-              ])
-
-
-  (high-frequency-small-interval? [
-                                   {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"}
-                                   {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"}
-                                   {:merchant "Burger King" :amount 20 :time "2019-03-13T10:04:00.000Z"}
-
-                                   ] {:merchant "Burger King" :amount 20 :time "2019-03-13T10:02:00.000Z"})
-
-  ; Card is not active
-  (authorize [{:account {:active-card false :available-limit 100}}
-              {:transaction {:merchant "Burger King" :amount 20 :time "2019-05-13T10:00:00.000Z"}}]))
