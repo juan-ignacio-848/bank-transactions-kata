@@ -42,6 +42,11 @@
 (defn card-active? [account]
   (:active-card account))
 
+(defn transactions-within-interval? [tx-1 tx-2]
+  (time/within-interval (instant (:time tx-1))
+                        (time/interval (instant (:time tx-2))
+                                       1 ChronoUnit/MINUTES)))
+
 (defn transactions-within-interval [txs tx]
   (filter #(transactions-within-interval? % tx) txs))
 
@@ -52,18 +57,11 @@
   (and (= (:amount tx-1) (:amount tx-2))
        (= (:merchant tx-1) (:merchant tx-2))))
 
-(defn transactions-within-interval? [tx-1 tx-2]
-  (time/within-interval (instant (:time tx-1))
-                        (time/interval (instant (:time tx-2))
-                                       1 ChronoUnit/MINUTES)))
-
-(defn similar-transactions [txs tx]
-  (let [similar-within-interval (comp (filter #(similar-transactions? % tx))
-                                   (filter #(transactions-within-interval? % tx)))]
-    (sequence similar-within-interval txs)))
-
 (defn doubled-transactions? [txs tx]
-  (>= (count (similar-transactions txs tx)) 2))
+  (< 1 (count (transduce (comp (filter #(similar-transactions? % tx))
+                               (filter #(transactions-within-interval? % tx)))
+                         conj []
+                         txs))))
 
 (defn transaction-violations [account-info tx]
   (cond-> #{}
