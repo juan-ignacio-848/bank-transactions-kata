@@ -1,5 +1,6 @@
 (ns authorizer.core
-  (:require [time.interval :as time])
+  (:require [time.interval :as time]
+            [java-time :refer [instant]])
   (:import (java.time.temporal ChronoUnit)))
 
 ;; TODO: Validations should go in another namespace?
@@ -43,8 +44,8 @@
 
 (defn transactions-within-interval [txs tx]
   (filter (fn [{:keys [time]}]
-            (time/within-interval (time/instant time)
-                                  (time/interval (time/instant (:time tx))
+            (time/within-interval (instant time)
+                                  (time/interval (instant (:time tx))
                                                  1 ChronoUnit/MINUTES)))
           txs))
 
@@ -56,8 +57,8 @@
        (= (:merchant tx-1) (:merchant tx-2))))
 
 (defn transactions-within-interval? [tx-1 tx-2]
-  (time/within-interval (time/instant (:time tx-1))
-                        (time/interval (time/instant (:time tx-2))
+  (time/within-interval (instant (:time tx-1))
+                        (time/interval (instant (:time tx-2))
                                        1 ChronoUnit/MINUTES)))
 
 (defn similar-transactions [txs tx]

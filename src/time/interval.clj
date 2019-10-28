@@ -12,7 +12,3 @@
     (or (and (.. time (isAfter start)) (.. time (isBefore end)))
         (= time start)
         (= time end))))
-
-;; TODO: Another namespace?
-(defn instant [t]
-  (time/instant t))
