@@ -2,7 +2,6 @@
   (:require [clojure.test :refer :all]
             [authorizer.core :refer :all]))
 
-;; TODO: CHECK IF SUPER BAD PRACTICE.
 (defn start-over [f]
   (reset! account-info {:account nil :transactions []})
   (f))
