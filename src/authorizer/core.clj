@@ -4,7 +4,6 @@
 
 ;; TODO: Validations should go in another namespace?
 ;; TODO: Tests - Unit tests, generative tests.
-
 ;; TODO: Violation codes are hard-coded, advantages of using this set?
 (def violation-codes #{:account-already-initialized
                        :insufficient-limit
@@ -35,11 +34,11 @@
     (response account ["account-already-initialized"])
     (response (:account (swap! account-info assoc :account data)) [])))
 
-(defn has-enough-money? [account amount]
+(defn sufficient-limit? [account amount]
   (>= (:available-limit account)
       amount))
 
-(defn has-active-card? [account]
+(defn card-active? [account]
   (:active-card account))
 
 (defn transactions-within-interval [txs tx]
@@ -66,15 +65,15 @@
                                    (filter #(transactions-within-interval? % tx)))]
     (sequence similar-within-interval txs)))
 
-(defn doubled-transactions [txs tx]
+(defn doubled-transactions? [txs tx]
   (>= (count (similar-transactions txs tx)) 2))
 
 (defn transaction-violations [account-info tx]
   (cond-> []
-          (not (has-enough-money? (:account account-info) (:amount tx))) (conj "insufficient-limit")
-          (not (has-active-card? (:account account-info))) (conj "card-not-active")
+          (not (sufficient-limit? (:account account-info) (:amount tx))) (conj "insufficient-limit")
+          (not (card-active? (:account account-info))) (conj "card-not-active")
           (high-frequency-small-interval? (:transactions account-info) tx) (conj "high-frequency-small-interval")
-          (doubled-transactions (:transactions account-info) tx) (conj "doubled-transactions")))
+          (doubled-transactions? (:transactions account-info) tx) (conj "doubled-transactions")))
 
 (defn process-transaction [tx]
   (let [violations (transaction-violations @account-info tx)]
