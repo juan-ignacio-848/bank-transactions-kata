@@ -12,28 +12,22 @@
                        :high-frequency-small-interval
                        :doubled-transaction})
 
-(defn response [account violations]
-  {:account account :violations violations})
-
-(defn create-account-info [account transactions]
-  {:account account :transactions transactions})
-
-(def account-info (atom (create-account-info nil [])))
+(def account-info (atom {:account nil :transactions []}))
 
 (defn decrease-available-limit [account amount]
   (update account :available-limit - amount))
 
 (defn pay [account-info tx]
-  (create-account-info (decrease-available-limit (:account account-info) (:amount tx))
-                       (conj (:transactions account-info) tx)))
+  {:account      (decrease-available-limit (:account account-info) (:amount tx))
+   :transactions (conj (:transactions account-info) tx)})
 
 (defn pay! [tx]
   (reset! account-info (pay @account-info tx)))
 
 (defn create-account! [account data]
   (if account
-    (response account #{:account-already-initialized})
-    (response (:account (swap! account-info assoc :account data)) #{})))
+    {:account account :violations #{:account-already-initialized}}
+    {:account (:account (swap! account-info assoc :account data)) :violations #{}}))
 
 (defn sufficient-limit? [account amount]
   (>= (:available-limit account)
@@ -73,7 +67,7 @@
   (let [violations (transaction-violations @account-info tx)]
     (when (empty? violations)
       (pay! tx))
-    (response (:account @account-info) violations)))
+    {:account (:account @account-info) :violations violations}))
 
 (defn authorize! [op]
   (cond

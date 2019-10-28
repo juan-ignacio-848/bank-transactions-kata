@@ -4,7 +4,7 @@
 
 ;; TODO: CHECK IF SUPER BAD PRACTICE.
 (defn start-over [f]
-  (reset! account-info (create-account-info nil []))
+  (reset! account-info {:account nil :transactions []})
   (f))
 
 (use-fixtures :each start-over)
