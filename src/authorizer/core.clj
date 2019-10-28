@@ -48,11 +48,8 @@
                                    (time/interval (instant (:time tx-2))
                                                   1 ChronoUnit/MINUTES))))
 
-(defn transactions-within-interval [txs tx]
-  (filter (transactions-within-interval? tx) txs))
-
 (defn high-frequency-small-interval? [txs tx]
-  (>= (count (transactions-within-interval txs tx)) 3))
+  (< 2 (count (filter (transactions-within-interval? tx) txs))))
 
 (defn similar-transactions? [tx-1]
   (fn [tx-2]
