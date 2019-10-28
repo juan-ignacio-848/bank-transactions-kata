@@ -31,8 +31,8 @@
 
 (defn create-account! [account data]
   (if account
-    (response account ["account-already-initialized"])
-    (response (:account (swap! account-info assoc :account data)) [])))
+    (response account #{:account-already-initialized})
+    (response (:account (swap! account-info assoc :account data)) #{})))
 
 (defn sufficient-limit? [account amount]
   (>= (:available-limit account)
@@ -49,7 +49,7 @@
           txs))
 
 (defn high-frequency-small-interval? [txs tx]
-  (> (count (transactions-within-interval txs tx)) 3))
+  (>= (count (transactions-within-interval txs tx)) 3))
 
 (defn similar-transactions? [tx-1 tx-2]
   (and (= (:amount tx-1) (:amount tx-2))
@@ -69,19 +69,19 @@
   (>= (count (similar-transactions txs tx)) 2))
 
 (defn transaction-violations [account-info tx]
-  (cond-> []
-          (not (sufficient-limit? (:account account-info) (:amount tx))) (conj "insufficient-limit")
-          (not (card-active? (:account account-info))) (conj "card-not-active")
-          (high-frequency-small-interval? (:transactions account-info) tx) (conj "high-frequency-small-interval")
-          (doubled-transactions? (:transactions account-info) tx) (conj "doubled-transactions")))
+  (cond-> #{}
+          (not (sufficient-limit? (:account account-info) (:amount tx))) (conj :insufficient-limit)
+          (not (card-active? (:account account-info))) (conj :card-not-active)
+          (high-frequency-small-interval? (:transactions account-info) tx) (conj :high-frequency-small-interval)
+          (doubled-transactions? (:transactions account-info) tx) (conj :doubled-transaction)))
 
-(defn process-transaction [tx]
+(defn process-transaction! [tx]
   (let [violations (transaction-violations @account-info tx)]
     (when (empty? violations)
       (pay! tx))
     (response (:account @account-info) violations)))
 
-(defn authorize [op]
+(defn authorize! [op]
   (cond
     (:account op) (create-account! (:account @account-info) (:account op))
-    (:transaction op) (process-transaction (:transaction op))))
+    (:transaction op) (process-transaction! (:transaction op))))

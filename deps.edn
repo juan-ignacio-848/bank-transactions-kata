@@ -1,6 +1,15 @@
 {:deps    {org.clojure/clojure {:mvn/version "1.10.1"}
            clojure.java-time   {:mvn/version "0.3.2"}}
- :aliases {:dev  {:extra-paths ["dev"]}
+ :aliases {
+           :test-kaocha {:extra-deps {lambdaisland/kaocha {:mvn/version "0.0-554"}}}
+           ;; testing and debugging tools:
+           :test {:extra-paths ["test"]}
+           ;; - see https://github.com/cognitect-labs/test-runner
+           ;; - run your tests: clj -A:test:runner
+           :runner {:extra-deps {com.cognitect/test-runner
+                                 {:git/url "https://github.com/cognitect-labs/test-runner"
+                                  :sha "3cb0a9daf1cb746259dc8309b218f9211ad3b33b"}}
+                    :main-opts ["-m" "cognitect.test-runner"]}
            :comp {:extra-deps {compliment {:mvn/version "RELEASE"}}}
            ;; - see https://github.com/cognitect-labs/REBL-distro
            ;; - you need to download the REBL JAR (and update the local/root below)
@@ -8,29 +17,29 @@
            ;; - - Oracle JDK 8 -- use :rebl-8
            ;; - - OpenJDK 11 -- use :rebl-11
            :rebl-8
-                 {:extra-deps {org.clojure/core.async {:mvn/version "0.4.490"}
-                               ;; deps for file datafication (0.9.149 or later)
-                               org.clojure/data.csv   {:mvn/version "0.1.4"}
-                               org.clojure/data.json  {:mvn/version "0.2.3"}
-                               org.yaml/snakeyaml     {:mvn/version "1.23"}
-                               com.cognitect/rebl
-                               ;; adjust to match your install location
-                                                      {:local/root "/home/nmkip/REBL/REBL.jar"}}
-                  :main-opts  ["-m" "cognitect.rebl"]}
+                        {:extra-deps {org.clojure/core.async {:mvn/version "0.4.490"}
+                                      ;; deps for file datafication (0.9.149 or later)
+                                      org.clojure/data.csv   {:mvn/version "0.1.4"}
+                                      org.clojure/data.json  {:mvn/version "0.2.3"}
+                                      org.yaml/snakeyaml     {:mvn/version "1.23"}
+                                      com.cognitect/rebl
+                                      ;; adjust to match your install location
+                                                             {:local/root "/home/nmkip/REBL/REBL.jar"}}
+                         :main-opts  ["-m" "cognitect.rebl"]}
            :rebl-11
-                 {:extra-deps {org.clojure/core.async      {:mvn/version "0.4.490"}
-                               ;; deps for file datafication (0.9.149 or later)
-                               org.clojure/data.csv        {:mvn/version "0.1.4"}
-                               org.clojure/data.json       {:mvn/version "0.2.3"}
-                               org.yaml/snakeyaml          {:mvn/version "1.23"}
-                               com.cognitect/rebl
-                               ;; adjust to match your install location
-                                                           {:local/root "/home/nmkip/REBL/REBL.jar"}
-                               org.openjfx/javafx-fxml     {:mvn/version "11.0.1"}
-                               org.openjfx/javafx-controls {:mvn/version "11.0.1"}
-                               org.openjfx/javafx-graphics {:mvn/version "11.0.1"}
-                               org.openjfx/javafx-media    {:mvn/version "11.0.1"}
-                               org.openjfx/javafx-swing    {:mvn/version "11.0.1"}
-                               org.openjfx/javafx-base     {:mvn/version "11.0.1"}
-                               org.openjfx/javafx-web      {:mvn/version "11.0.1"}}
-                  :main-opts  ["-m" "cognitect.rebl"]}}}
+                        {:extra-deps {org.clojure/core.async      {:mvn/version "0.4.490"}
+                                      ;; deps for file datafication (0.9.149 or later)
+                                      org.clojure/data.csv        {:mvn/version "0.1.4"}
+                                      org.clojure/data.json       {:mvn/version "0.2.3"}
+                                      org.yaml/snakeyaml          {:mvn/version "1.23"}
+                                      com.cognitect/rebl
+                                      ;; adjust to match your install location
+                                                                  {:local/root "/home/nmkip/REBL/REBL.jar"}
+                                      org.openjfx/javafx-fxml     {:mvn/version "11.0.1"}
+                                      org.openjfx/javafx-controls {:mvn/version "11.0.1"}
+                                      org.openjfx/javafx-graphics {:mvn/version "11.0.1"}
+                                      org.openjfx/javafx-media    {:mvn/version "11.0.1"}
+                                      org.openjfx/javafx-swing    {:mvn/version "11.0.1"}
+                                      org.openjfx/javafx-base     {:mvn/version "11.0.1"}
+                                      org.openjfx/javafx-web      {:mvn/version "11.0.1"}}
+                         :main-opts  ["-m" "cognitect.rebl"]}}}
