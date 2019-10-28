@@ -9,14 +9,14 @@
 (defn active-card? [account]
   (:active-card account))
 
-(defn transactions-within-interval? [tx-1]
+(defn transactions-within-two-minutes-interval? [tx-1]
   (fn [tx-2]
     (time/within-interval (instant (:time tx-1))
                           (time/interval (instant (:time tx-2))
                                          1 ChronoUnit/MINUTES))))
 
 (defn high-frequency-small-interval? [txs tx]
-  (>= (count (filter (transactions-within-interval? tx) txs)) 3))
+  (>= (count (filter (transactions-within-two-minutes-interval? tx) txs)) 3))
 
 (defn similar-transactions? [tx-1]
   (fn [tx-2]
@@ -25,7 +25,7 @@
 
 (defn doubled-transactions? [txs tx]
   (>= (count (transduce (comp (filter (similar-transactions? tx))
-                               (filter (transactions-within-interval? tx)))
+                              (filter (transactions-within-two-minutes-interval? tx)))
                          conj []
                          txs)) 2))
 
