@@ -43,11 +43,7 @@
   (:active-card account))
 
 (defn transactions-within-interval [txs tx]
-  (filter (fn [{:keys [time]}]
-            (time/within-interval (instant time)
-                                  (time/interval (instant (:time tx))
-                                                 1 ChronoUnit/MINUTES)))
-          txs))
+  (filter #(transactions-within-interval? % tx) txs))
 
 (defn high-frequency-small-interval? [txs tx]
   (>= (count (transactions-within-interval txs tx)) 3))
