@@ -3,6 +3,12 @@
             [java-time :refer [instant]])
   (:import (java.time.temporal ChronoUnit)))
 
+(def violation-codes #{:account-already-initialized
+                       :insufficient-limit
+                       :card-not-active
+                       :high-frequency-small-interval
+                       :doubled-transaction})
+
 (defn sufficient-limit? [account amount]
   (>= (:available-limit account) amount))
 
@@ -35,3 +41,8 @@
           (not (card-active? (:account account-info))) (conj :card-not-active)
           (high-frequency-small-interval? (:transactions account-info) tx) (conj :high-frequency-small-interval)
           (doubled-transactions? (:transactions account-info) tx) (conj :doubled-transaction)))
+
+(defn account-violations [account-info]
+  (if (:account account-info)
+    #{:account-already-initialized}
+    #{}))
