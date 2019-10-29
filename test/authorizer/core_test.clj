@@ -1,6 +1,6 @@
 (ns authorizer.core-test
-  (:require [clojure.test :refer :all]
-            [authorizer.core :refer :all]))
+  (:require [authorizer.core :refer :all]
+            [clojure.test :refer :all]))
 
 (defn start-over [f]
   (reset! account-info {:account nil :transactions []})

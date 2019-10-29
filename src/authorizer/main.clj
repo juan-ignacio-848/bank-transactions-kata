@@ -1,27 +1,20 @@
 (ns authorizer.main
-  (:require [clojure.data.json :as json]
+  (:require [authorizer.core :refer [authorize!]]
             [camel-snake-kebab.core :as csk]
-            [authorizer.core :refer [authorize!]]
+            [clojure.data.json :as json]
             [clojure.java.io :as io]))
 
-(defn json->hash-map [lines]
-  (->> lines
-       clojure.string/split-lines
-       (map #(json/read-str % :key-fn csk/->kebab-case-keyword))))
+(defn json->hash-map [line]
+  (json/read-str line :key-fn csk/->kebab-case-keyword))
 
 (defn hash-map->json [result]
-  (map #(json/write-str % :key-fn csk/->camelCaseString) result))
-
-#_#_
-(def lines "{\"account\": {\"activeCard\": true, \"availableLimit\": 100}}\n{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 20, \"time\": \"2019-02-13T10:00:00.000Z\"}}\n{\"transaction\": {\"merchant\": \"Habbib's\", \"amount\": 90, \"time\": \"2019-02-13T11:00:00.000Z\"}}")
-(doseq [operation (json->hash-map lines)]
-  (println (hash-map->json (authorize! operation))))
+  (json/write-str result :key-fn csk/->camelCaseString))
 
 (defn -main [& args]
   (doseq [line (line-seq (io/reader *in*))]
     (-> line
-        (json->hash-map)
-        (authorize!)
-        (hash-map->json)
-        (println))))
+        json->hash-map
+        authorize!
+        hash-map->json
+        println)))
 

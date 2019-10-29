@@ -1,6 +1,6 @@
 (ns authorizer.rules
-  (:require [time.interval :as time]
-            [java-time :refer [instant]])
+  (:require [java-time :refer [instant]]
+            [time.interval :as time])
   (:import (java.time.temporal ChronoUnit)))
 
 (defn sufficient-limit? [account amount]
@@ -26,8 +26,8 @@
 (defn doubled-transactions? [txs tx]
   (>= (count (transduce (comp (filter (similar-transactions? tx))
                               (filter (transactions-within-two-minutes-interval? tx)))
-                         conj []
-                         txs)) 2))
+                        conj []
+                        txs)) 2))
 
 (defn transaction-violations [account-info tx]
   (cond-> #{}

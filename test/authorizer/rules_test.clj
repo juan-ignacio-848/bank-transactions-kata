@@ -1,6 +1,6 @@
 (ns authorizer.rules-test
-  (:require [clojure.test :refer :all]
-            [authorizer.rules :refer :all]))
+  (:require [authorizer.rules :refer :all]
+            [clojure.test :refer :all]))
 
 (def transactions [{:merchant "Amazon" :amount 20 :time "2019-10-28T10:00:00.000Z"}
                    {:merchant "Apple" :amount 20 :time "2019-10-28T10:00:00.000Z"}
