@@ -3,9 +3,6 @@
            org.clojure/data.json {:mvn/version "0.2.6"}
            camel-snake-kebab     {:mvn/version "0.4.0"}}
  :aliases {
-           :depstar
-                   {:extra-deps
-                    {seancorfield/depstar {:mvn/version "0.3.4"}}}
            ;; testing and debugging tools:
            :test   {:extra-paths ["test"]}
            ;; - see https://github.com/cognitect-labs/test-runner
