@@ -18,7 +18,7 @@ To use the program go to the project folder and execute the following command:
 
 #### Sample usage
 
-![enter image description here](https://imgur.com/0aWk2Qt)
+![enter image description here](samples/sample-usage-input.gif)
 
 ### Running the tests
 
@@ -27,4 +27,4 @@ To run the tests go the project folder and execute the following command:
     clojure -Atest:runner
 
 #### Sample usage
-![enter image description here](https://imgur.com/0aWk2Qt)
+![enter image description here](samples/run-tests.gif)
