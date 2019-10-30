@@ -17,7 +17,7 @@ To use the program go to the project folder and execute the following command:
     clojure -m authorize.main < input.json
 
 #### Sample usage
-![](https://gfycat.com/definitewebbedhorseshoecrab)
+![](https://imgur.com/0aWk2Qt)
 
 ### Running the tests
 
