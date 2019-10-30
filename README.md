@@ -17,7 +17,8 @@ To use the program go to the project folder and execute the following command:
     clojure -m authorize.main < input.json
 
 #### Sample usage
-![](https://gfycat.com/definitewebbedhorseshoecrab)
+
+![enter image description here](https://imgur.com/0aWk2Qt)
 
 ### Running the tests
 
@@ -26,4 +27,4 @@ To run the tests go the project folder and execute the following command:
     clojure -Atest:runner
 
 #### Sample usage
-![](https://gfycat.com/pastelathleticfrilledlizard)
+![enter image description here](https://imgur.com/0aWk2Qt)
