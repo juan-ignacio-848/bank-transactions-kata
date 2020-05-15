@@ -4,6 +4,7 @@
             [clojure.data.json :as json]
             [clojure.java.io :as io]))
 
+;; Hello, Magit!
 (defn json->hash-map [line]
   (json/read-str line :key-fn csk/->kebab-case-keyword))
 
